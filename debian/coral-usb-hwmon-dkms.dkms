@@ -1,0 +1,6 @@
+PACKAGE_NAME="coral-usb-hwmon"
+PACKAGE_VERSION="#MODULE_VERSION#"
+BUILT_MODULE_NAME[0]="coral_usb_hwmon"
+DEST_MODULE_LOCATION[0]="/updates/dkms"
+MAKE[0]="make -C ${kernel_source_dir} M=${dkms_tree}/${PACKAGE_NAME}/${PACKAGE_VERSION}/build modules"
+AUTOINSTALL="yes"

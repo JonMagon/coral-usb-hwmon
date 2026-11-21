@@ -1,0 +1,12 @@
+coral-usb-hwmon (0.1.1) unstable; urgency=medium
+
+  * First public release. Add installation instructions, a hardware validation
+    trace and a standalone diagnostic tool to the source distribution.
+
+ -- Dmitry Sidorov <jonmagon@gmail.com>  Sun, 22 Nov 2026 01:00:00 +0300
+
+coral-usb-hwmon (0.1.0) unstable; urgency=medium
+
+  * Initial release with hwmon and optional apex sysfs compatibility.
+
+ -- Coral USB hwmon contributors <noreply@localhost>  Sun, 22 Nov 2026 00:00:00 +0300

@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: coral-usb-hwmon
+Source: https://github.com/JonMagon/coral-usb-hwmon
+
+Files: *
+Copyright: 2026 Dmitry Sidorov and contributors
+License: GPL-2
+ On Debian systems the full license is in /usr/share/common-licenses/GPL-2.

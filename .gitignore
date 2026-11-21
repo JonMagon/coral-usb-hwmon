@@ -1,0 +1,14 @@
+*.o
+*.ko
+*.cmd
+*.mod
+*.mod.c
+.tmp_versions/
+Module.symvers
+modules.order
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/coral-usb-hwmon-dkms/
+dist/
