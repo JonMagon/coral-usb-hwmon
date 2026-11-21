@@ -23,6 +23,8 @@ sensors 'coral_usb-*'
 
 Start your usual Edge TPU application once after plugging the accelerator in. The sensor appears when the firmware enumerates as `18d1:9302`. The bootloader has USB ID `1a6e:089a`.
 
+To see which clock rate the runtime selected while your application is running, use the [standalone probe with `--clock`](docs/hardware.md#read-the-configured-tpu-clock).
+
 ## Show the temperature in Frigate
 
 On hosts with **USB Coral accelerators only**, enable the optional apex compatibility class. Frigate can then read the temperature from its usual sysfs path, including from the stock container.

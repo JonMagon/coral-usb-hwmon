@@ -34,10 +34,22 @@ static int control_transfer(int fd, uint8_t type, uint8_t request, uint16_t valu
 static int read_register(int fd, uint16_t offset, uint32_t *value)
 {
     uint8_t data[4];
+    /* The upper 16 bits of every register address used here are 0x0001. */
     if (control_transfer(fd, 0xc0, 1, offset, 1, data, sizeof data))
         return -1;
     *value = (uint32_t)data[0] | ((uint32_t)data[1] << 8) |
              ((uint32_t)data[2] << 16) | ((uint32_t)data[3] << 24);
+    return 0;
+}
+
+static int read_configured_clock(int fd)
+{
+    /* SCU_CTRL_3[29:28] selects the GCB (compute core) clock divider. */
+    static const unsigned clock_mhz[] = {500, 250, 125, 63};
+    uint32_t raw;
+    if (read_register(fd, 0xa318, &raw))
+        return 1;
+    printf("Configured TPU clock: %u MHz\n", clock_mhz[(raw >> 28) & 3]);
     return 0;
 }
 
@@ -116,7 +128,7 @@ restore:
     return status;
 }
 
-static int probe(int fd, int enable_test)
+static int check_device(int fd)
 {
     uint8_t descriptor[18];
     if (control_transfer(fd, 0x80, 6, 0x0100, 0, descriptor, sizeof descriptor))
@@ -130,14 +142,18 @@ static int probe(int fd, int enable_test)
         return 1;
     }
 
-    return enable_test ? test_sensor(fd) : sample_temperature(fd);
+    return 0;
 }
 
 int main(int argc, char **argv)
 {
-    int enable_test = argc == 3 && strcmp(argv[1], "--enable-test") == 0;
-    if (argc != 2 && !enable_test) {
-        fprintf(stderr, "Usage: %s [--enable-test] /dev/bus/usb/BUS/DEVICE\n", argv[0]);
+    int (*measure)(int) = sample_temperature;
+    if (argc == 3 && strcmp(argv[1], "--clock") == 0) {
+        measure = read_configured_clock;
+    } else if (argc == 3 && strcmp(argv[1], "--enable-test") == 0) {
+        measure = test_sensor;
+    } else if (argc != 2 || argv[1][0] == '-') {
+        fprintf(stderr, "Usage: %s [--clock | --enable-test] /dev/bus/usb/BUS/DEVICE\n", argv[0]);
         return 1;
     }
     /* usbfs requires a writable fd for USBDEVFS_CONTROL, even for IN requests. */
@@ -146,7 +162,9 @@ int main(int argc, char **argv)
         perror(argv[argc - 1]);
         return 1;
     }
-    int status = probe(fd, enable_test);
+    int status = check_device(fd);
+    if (status == 0)
+        status = measure(fd);
     close(fd);
     return status;
 }

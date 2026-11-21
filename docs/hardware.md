@@ -28,4 +28,16 @@ A standalone probe sampled the enabled sensor roughly once a second. The test op
 
 The workload lasted 55.007 s at 121.4 inferences/s. The peak estimate was 45.55 °C. These measurements are from one physical accelerator.
 
-The [standalone Linux probe](../tools/coral-usb-temp.c) also works without the kernel module. Build it with `cc -O2 -Wall -o coral-usb-temp tools/coral-usb-temp.c`. Pass the runtime node from `lsusb`, for example `/dev/bus/usb/002/003`. The default mode reads the current register. `--enable-test` temporarily enables the sensor and restores its previous enable bits. Use the module or the diagnostic enable test one at a time.
+The [standalone Linux probe](../tools/coral-usb-temp.c) also works without the kernel module. Pass the USB device path to read the temperature sensor. With `--enable-test`, the probe temporarily enables the sensor and restores its previous enable bits. Use the module or the diagnostic enable test one at a time.
+
+## Read the configured TPU clock
+
+Build the probe from the repository root. Find the accelerator's current bus and device numbers with `lsusb -d 18d1:9302` and substitute them in the device path.
+
+```console
+$ cc -O2 -Wall -o coral-usb-temp tools/coral-usb-temp.c
+$ sudo ./coral-usb-temp --clock /dev/bus/usb/002/003
+Configured TPU clock: 500 MHz
+```
+
+This read-only command works while Frigate holds the accelerator open. It reads the compute core clock divider from bits 29–28 of `SCU_CTRL_3` at `0x1a318`. The reported MHz describe the runtime configuration. Measuring instantaneous frequency or utilization requires a separate measurement. On the test unit Frigate selected 500 MHz. Switching the same model from the Medium profile to High and back produced 125, 250 and 125 MHz respectively. [Clock divider definitions in libedgetpu](https://github.com/google-coral/libedgetpu/blob/e35aed18fea2e2d25d98352e5a5bd357c170bd4d/driver/config/beagle_csr_helper.h#L362-L390)
