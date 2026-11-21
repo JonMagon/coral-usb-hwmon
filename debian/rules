@@ -1,12 +1,19 @@
 #!/usr/bin/make -f
-include /usr/share/dpkg/pkg-info.mk
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
 %:
 	dh $@ --with dkms
 
-override_dh_auto_build override_dh_auto_test override_dh_auto_clean:
+override_dh_auto_build-indep override_dh_auto_test override_dh_auto_clean:
 
-override_dh_auto_install:
+override_dh_auto_build-arch:
+	$(CC) $(CPPFLAGS) $(CFLAGS) -std=c11 $(LDFLAGS) -o debian/coral-usb-temp tools/coral-usb-temp.c
+
+override_dh_auto_install-arch:
+	install -Dm755 debian/coral-usb-temp debian/coral-usb-tools/usr/bin/coral-usb-temp
+
+override_dh_auto_install-indep:
 	install -Dm644 -t debian/coral-usb-hwmon-dkms/usr/src/coral-usb-hwmon-$(DEB_VERSION_UPSTREAM) Makefile coral_usb_hwmon.c
 
-override_dh_dkms:
-	dh_dkms -V $(DEB_VERSION_UPSTREAM)
+override_dh_dkms-indep:
+	dh_dkms -p coral-usb-hwmon-dkms -V $(DEB_VERSION_UPSTREAM)

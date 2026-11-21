@@ -11,4 +11,6 @@ debian/debhelper-build-stamp
 debian/files
 debian/*.substvars
 debian/coral-usb-hwmon-dkms/
+debian/coral-usb-tools/
+debian/coral-usb-temp
 dist/

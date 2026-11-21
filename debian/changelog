@@ -1,3 +1,11 @@
+coral-usb-hwmon (0.2.0) unstable; urgency=medium
+
+  * Package the standalone diagnostic probe in coral-usb-tools.
+  * Read the configured clock and capture timestamped USB status samples.
+  * Support an explicit snapshot of both HIB error registers.
+
+ -- Dmitry Sidorov <jonmagon@gmail.com>  Sun, 22 Nov 2026 02:00:00 +0300
+
 coral-usb-hwmon (0.1.1) unstable; urgency=medium
 
   * First public release. Add installation instructions, a hardware validation

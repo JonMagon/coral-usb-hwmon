@@ -41,3 +41,24 @@ Configured TPU clock: 500 MHz
 ```
 
 This read-only command works while Frigate holds the accelerator open. It reads the compute core clock divider from bits 29–28 of `SCU_CTRL_3` at `0x1a318`. The reported MHz describe the runtime configuration. Measuring instantaneous frequency or utilization requires a separate measurement. On the test unit Frigate selected 500 MHz. Switching the same model from the Medium profile to High and back produced 125, 250 and 125 MHz respectively. [Clock divider definitions in libedgetpu](https://github.com/google-coral/libedgetpu/blob/e35aed18fea2e2d25d98352e5a5bd357c170bd4d/driver/config/beagle_csr_helper.h#L362-L390)
+
+## Capture USB status
+
+To keep a log while investigating a disconnect, install the tools package and replace the example device path with the one reported by `lsusb -d 18d1:9302`. Stop with Ctrl-C. If the Coral reconnects at a new address, restart the command with its new path.
+
+```sh
+while true; do sudo coral-usb-temp --status /dev/bus/usb/002/003; sleep 2; done | tee -a coral-status.log
+journalctl -k --utc -o short-iso
+```
+
+Each line begins with the host time in UTC, followed by sequential readings. `temp_c=unavailable` can mean that the die sensor is disabled. If a USB read fails, its field is marked unavailable and the command exits with an error. If the device disappears or the USB ID changes, the line says `device=unavailable`.
+
+`usb_fatal_irq_pending` is bit 0 of the USB fatal interrupt status register (`0x4c068`). Its value is 1 while that interrupt is pending. The runtime acknowledges it by writing zero. A sample of 0 can miss a transient interrupt between reads. Compare the UTC times with USB resets in the kernel log and errors reported by the application. [USB register map](https://github.com/google-coral/libedgetpu/blob/e35aed18fea2e2d25d98352e5a5bd357c170bd4d/driver/config/beagle/beagle_csr_offsets.h#L1695-L1698) · [Interrupt acknowledgement](https://github.com/google-coral/libedgetpu/blob/e35aed18fea2e2d25d98352e5a5bd357c170bd4d/driver/interrupt/interrupt_controller.cc#L59-L72)
+
+For a one-time snapshot of the two 64-bit Host Interface Block (HIB) error registers, run:
+
+```sh
+sudo coral-usb-temp --status --hib-errors /dev/bus/usb/002/003
+```
+
+This adds the raw `hib_error_status` (`0x486f0`) and `hib_first_error_status` (`0x48700`) values. Both returned zero on the tested USB Accelerator with Frigate running. The published driver reads them during error handling. It leaves the effect of reading a latched nonzero value unspecified, so the default status command polls only the separate interrupt flag for errors. [USB driver's HIB error handler](https://github.com/google-coral/libedgetpu/blob/e35aed18fea2e2d25d98352e5a5bd357c170bd4d/driver/usb/usb_driver.cc#L411-L447)

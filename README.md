@@ -12,18 +12,29 @@ temp1:        +40.3°C
 ## Install on Debian or Raspberry Pi OS
 
 1. Install the development headers matching your **running kernel**. Check that `/lib/modules/$(uname -r)/build/Makefile` exists.
-2. Download the `.deb` from [Releases](https://github.com/JonMagon/coral-usb-hwmon/releases/latest).
+2. Download `coral-usb-hwmon-dkms_0.2.0_all.deb` from [Releases](https://github.com/JonMagon/coral-usb-hwmon/releases/latest).
 3. Install the package and load the module. The included udev rule loads it automatically when a Coral subsequently appears in runtime mode.
 
 ```sh
-sudo apt install ./coral-usb-hwmon-dkms_0.1.1_all.deb lm-sensors
+sudo apt install ./coral-usb-hwmon-dkms_0.2.0_all.deb lm-sensors
 sudo modprobe coral_usb_hwmon
 sensors 'coral_usb-*'
 ```
 
 Start your usual Edge TPU application once after plugging the accelerator in. The sensor appears when the firmware enumerates as `18d1:9302`. The bootloader has USB ID `1a6e:089a`.
 
-To see which clock rate the runtime selected while your application is running, use the [standalone probe with `--clock`](docs/hardware.md#read-the-configured-tpu-clock).
+## Diagnose a USB disconnect
+
+On 64-bit Raspberry Pi OS, download the `arm64` tools package from the same release. It can run alongside Frigate and can be installed independently of the kernel module. Use the bus and device numbers from `lsusb` in the commands below.
+
+```sh
+sudo apt install ./coral-usb-tools_0.2.0_arm64.deb
+lsusb -d 18d1:9302
+sudo coral-usb-temp --clock /dev/bus/usb/002/003
+sudo coral-usb-temp --status /dev/bus/usb/002/003
+```
+
+`--status` prints a UTC timestamp, die temperature, configured clock and pending USB fatal interrupt flag. For interpreting a sample, saving a log and taking a detailed HIB error snapshot, see the [diagnostic guide](docs/hardware.md#capture-usb-status).
 
 ## Show the temperature in Frigate
 
@@ -63,7 +74,7 @@ make
 sudo insmod ./coral_usb_hwmon.ko
 ```
 
-To build the distributable DKMS package on Debian:
+To build the DKMS and diagnostic packages on Debian:
 
 ```sh
 sudo apt install dpkg-dev debhelper dh-dkms

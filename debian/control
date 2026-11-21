@@ -17,3 +17,12 @@ Description: Temperature monitoring for the Google Coral USB Accelerator
  Exposes the on-chip sensor via Linux hwmon. An optional apex compatibility
  class supplies the temperature path used by Frigate on USB-only systems.
  DKMS builds the module using the headers for each target kernel.
+
+Package: coral-usb-tools
+Architecture: linux-any
+Section: utils
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: USB diagnostics for the Google Coral USB Accelerator
+ Reads the configured TPU clock, temperature sensor and USB fatal interrupt
+ flag from an initialized accelerator. Can capture a timestamped status
+ sample while an Edge TPU application is running.
